@@ -1,12 +1,143 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Gemini Live Voice</title>
+<meta charset="UTF-8">
+<title>Zaraa — Treet Manufacturing Voice Support</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1B1D1F;
+    --panel: #232629;
+    --amber: #E8A33D;
+    --teal: #3FA796;
+    --text: #F2EFE9;
+    --text-muted: #6B6F73;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 420px;
+    background: var(--panel);
+    border: 1px solid #303338;
+    border-radius: 12px;
+    padding: 40px 32px;
+    text-align: center;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 4px;
+  }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 32px;
+    letter-spacing: 0.02em;
+  }
+
+  .mic-wrap {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--amber);
+    opacity: 0.35;
+    animation: breathe 3s ease-in-out infinite;
+  }
+
+  .ring.ring-2 {
+    inset: 16px;
+    animation-delay: 0.4s;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(0.94); opacity: 0.2; }
+    50% { transform: scale(1.02); opacity: 0.5; }
+  }
+
+  body[data-state="listening"] .ring { border-color: var(--teal); animation-duration: 1.4s; }
+  body[data-state="speaking"] .ring { border-color: var(--amber); animation-duration: 0.9s; }
+
+  #startBtn {
+    position: relative;
+    z-index: 1;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: none;
+    background: var(--amber);
+    color: var(--bg);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+
+  #startBtn:hover { transform: scale(1.04); }
+  #startBtn:active { transform: scale(0.97); }
+
+  body[data-state="listening"] #startBtn { background: var(--teal); }
+
+  #status {
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+    margin: 0;
+    min-height: 18px;
+    transition: color 0.2s ease;
+  }
+
+  body[data-state="listening"] #status { color: var(--teal); }
+  body[data-state="speaking"] #status { color: var(--amber); }
+  body[data-state="ticket"] #status { color: var(--teal); font-weight: 500; }
+</style>
 </head>
-<body>
-  <h1>Gemini Live Voice</h1>
-  <button id="startBtn">Start Conversation</button>
-  <p id="status">Idle</p>
+<body data-state="idle">
+  <div class="panel">
+    <p class="eyebrow">Treet Manufacturing</p>
+    <h1>Zaraa — Voice Support</h1>
+
+    <div class="mic-wrap">
+      <div class="ring"></div>
+      <div class="ring ring-2"></div>
+      <button id="startBtn">Start Call</button>
+    </div>
+
+    <p id="status">Idle</p>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

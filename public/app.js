@@ -1,9 +1,21 @@
 const startBtn = document.getElementById("startBtn");
-
 const statusEl = document.getElementById("status");
-function setStatus(text) {
+
+let statusLocked = false;
+
+function setStatus(text, state) {
+    if (statusLocked) return;
     statusEl.textContent = text;
+    if (state) {
+        document.body.setAttribute("data-state", state);
+    }
 }
+
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) {
+    window.location.reload();
+  }
+});
 
 startBtn.addEventListener("click", async () => {
     const socket = new WebSocket("ws://localhost:3002");
@@ -15,7 +27,9 @@ startBtn.addEventListener("click", async () => {
         const stream = await navigator.mediaDevices.getUserMedia({
             audio: {
                 channelCount: 1,
-                sampleRate: 16000
+                sampleRate: 16000,
+                echoCancellation: true,
+                noiseSuppression: true
             }
         });
 
@@ -35,7 +49,7 @@ startBtn.addEventListener("click", async () => {
 
         console.log("Streaming microphone audio...");
 
-        setStatus("Listening...");
+        setStatus("Listening...", "listening");
 
         let nextPlayTime = 0;
         let activeSources = [];
@@ -48,9 +62,13 @@ startBtn.addEventListener("click", async () => {
                     stopPlayback();
                 }
                 if (message.type === "ticketCreated") {
-                    setStatus(`Ticket #${message.ticket.id} created ✓`);
+                    statusLocked = true;
+                    statusEl.textContent = `Ticket #${message.ticket.id} created ✓`;
+                    document.body.setAttribute("data-state", "ticket");
+                    
                     setTimeout(() => {
-                        setStatus("Listening...");
+                        statusLocked = false;
+                        setStatus("Listening...", "listening");
                     }, 3000);
                 }
                 return;
@@ -78,7 +96,7 @@ startBtn.addEventListener("click", async () => {
                 return;
             }
 
-            setStatus("Zaraa is speaking ...");
+            setStatus("Zaraa is speaking ...", "speaking");
 
             const float32Data = new Float32Array(int16Data.length);
 
@@ -97,7 +115,7 @@ startBtn.addEventListener("click", async () => {
             bufferSource.onended = () => {
                 activeSources = activeSources.filter(s => s !== bufferSource);
                 if (activeSources.length === 0) {
-                    setStatus("Listening...");
+                    setStatus("Listening...", "listening");
                 }
             };
 
