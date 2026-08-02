@@ -1,5 +1,10 @@
 const startBtn = document.getElementById("startBtn");
 
+const statusEl = document.getElementById("status");
+function setStatus(text) {
+    statusEl.textContent = text;
+}
+
 startBtn.addEventListener("click", async () => {
     const socket = new WebSocket("ws://localhost:3002");
     socket.binaryType = "arraybuffer";
@@ -30,6 +35,8 @@ startBtn.addEventListener("click", async () => {
 
         console.log("Streaming microphone audio...");
 
+        setStatus("Listening...");
+
         let nextPlayTime = 0;
         let activeSources = [];
         const playbackContext = new AudioContext({ sampleRate: 24000 });
@@ -40,9 +47,15 @@ startBtn.addEventListener("click", async () => {
                 if (message.type === "interrupted") {
                     stopPlayback();
                 }
+                if (message.type === "ticketCreated") {
+                    setStatus(`Ticket #${message.ticket.id} created ✓`);
+                    setTimeout(() => {
+                        setStatus("Listening...");
+                    }, 3000);
+                }
                 return;
             }
-            
+
             playAudioChunk(event.data);
         };
 
@@ -65,6 +78,7 @@ startBtn.addEventListener("click", async () => {
                 return;
             }
 
+            setStatus("Zaraa is speaking ...");
 
             const float32Data = new Float32Array(int16Data.length);
 
@@ -82,6 +96,9 @@ startBtn.addEventListener("click", async () => {
             activeSources.push(bufferSource);
             bufferSource.onended = () => {
                 activeSources = activeSources.filter(s => s !== bufferSource);
+                if (activeSources.length === 0) {
+                    setStatus("Listening...");
+                }
             };
 
             const currentTime = playbackContext.currentTime;

@@ -81,6 +81,9 @@ function connectToGemini() {
           };
 
           tickets.push(ticket);
+          if (browserSocket) {
+            browserSocket.send(JSON.stringify({ type: "ticketCreated", ticket }));
+          }
           console.log("TICKET CREATED:", ticket);
 
           const toolResponse = {
