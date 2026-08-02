@@ -1,0 +1,18 @@
+{
+  "name": "voice-live-poc",
+  "version": "1.0.0",
+  "description": "Real-type helpdesk agent",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Afnan Majeed",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "ws": "^8.21.1"
+  }
+}
