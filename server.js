@@ -4,6 +4,7 @@ import express from "express";
 
 const app = express();
 const GEMINI_URL = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${process.env.GEMINI_API_KEY}`;
+const tickets = [];
 
 let browserSocket = null;
 let geminiSocket = null;
@@ -11,6 +12,10 @@ let geminiReady = false;
 
 app.use(express.static("public"));
 app.listen(3001, () => console.log("Static file server on http://localhost:3001"));
+app.get("/tickets", (req, res) => {
+  res.json(tickets);
+});
+
 
 function connectToGemini() {
   geminiSocket = new WebSocket(GEMINI_URL);
@@ -30,24 +35,73 @@ function connectToGemini() {
               }
             }
           }
-        }
+        },
+        systemInstruction: {
+          parts: [{
+            text: "You are Zaraa, a helpdesk agent in Treet manufacturing. You are fluent in English, Urdu, and Punjabi — always respond in whichever of these three languages the user is currently speaking, switching naturally if they switch. When you're speaking Urdu, switch to an native Pakistani Urdu accent, when you're speaking English, switch to a native English accent, when you're speaking Punjabi switch to a native Pakistani Punjabi accent. Collect these four things from the user through natural conversation, one question at a time: Main Category, Sub Category, Short Description, Long Description. Once you have all four, call the create_ticket tool. Keep responses short and incredibly professional and incredibly concise. This is a spoken conversation."
+          }]
+        },
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: "create_ticket",
+                description: "Create a help desk ticket once all four fields are known",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    mainCategory: { type: "string" },
+                    subCategory: { type: "string" },
+                    shortDescription: { type: "string" },
+                    longDescription: { type: "string" }
+                  },
+                  required: ["mainCategory", "subCategory", "shortDescription", "longDescription"]
+                }
+              }
+            ]
+          }
+        ]
       }
     };
-
     geminiSocket.send(JSON.stringify(setupMessage));
   });
 
   geminiSocket.on("message", (data) => {
     const message = JSON.parse(data.toString());
-    
-    if (message?.serverContent) {
-      console.log("serverContent keys:", Object.keys(message.serverContent));
+
+    if (message?.toolCall) {
+      const functionCalls = message.toolCall.functionCalls;
+
+      for (const call of functionCalls) {
+        if (call.name === "create_ticket") {
+          const ticket = {
+            id: tickets.length + 1,
+            ...call.args,
+            createdAt: new Date().toISOString()
+          };
+
+          tickets.push(ticket);
+          console.log("TICKET CREATED:", ticket);
+
+          const toolResponse = {
+            toolResponse: {
+              functionResponses: [{
+                id: call.id,
+                name: call.name,
+                response: { status: "created" }
+              }]
+            }
+          };
+
+          geminiSocket.send(JSON.stringify(toolResponse));
+        }
+      }
     }
 
     if (message?.serverContent?.interrupted && browserSocket) {
       browserSocket.send(JSON.stringify({ type: "interrupted" }));
     }
-    
+
     if (message.setupComplete) {
       geminiReady = true;
       console.log("Gemini session ready");
