@@ -1,5 +1,7 @@
 # Zaraa — Speech-to-Speech Voice Help Desk
 
+![Zaraa voice interface](screenshots/zaraa-ui.png)
+
 A native speech-to-speech AI help desk agent for Treet Manufacturing, built on
 Google's Gemini Live API. Unlike a traditional voice pipeline (speech-to-text
 → LLM → text-to-speech), Zaraa processes and generates audio natively —
