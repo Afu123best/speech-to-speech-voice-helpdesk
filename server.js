@@ -128,6 +128,9 @@ function connectToGemini() {
   geminiSocket.on("close", (code, reason) => {
     console.log("Gemini connection closed:", code, reason.toString());
     geminiReady = false;
+
+    console.log("Reconnecting to Gemini in 2 seconds...");
+    setTimeout(connectToGemini, 2000)
   });
 
   geminiSocket.on("error", (err) => {
